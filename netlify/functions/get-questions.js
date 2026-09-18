@@ -1,0 +1,2 @@
+import questions from './data/questions-data.js';import {json,requireUser,verify} from './_utils.js';
+export default async request=>{if(request.method!=='GET')return json({message:'Method not allowed'},405);const a=await requireUser();if(a.error)return a.error;const access=await verify(a.user,request.headers.get('x-device-id')||'');if(!access.allowed)return json({message:access.reason==='pending_approval'?'This device is waiting for approval.':'This account is not approved for this device.',reason:access.reason},403);return json({banks:questions})}

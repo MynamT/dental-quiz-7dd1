@@ -1,0 +1,19 @@
+{
+  "name": "dental-quiz-netlify-auth",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@netlify/blobs": "latest",
+    "@netlify/identity": "latest"
+  },
+  "devDependencies": {
+    "netlify-cli": "latest",
+    "vite": "latest"
+  }
+}

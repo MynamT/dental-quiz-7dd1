@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#ffffff" />
+    <title>Dental Quiz Practice</title>
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Private 7DD self-study quiz</p>
+          <h1>Dental Quiz Practice</h1>
+          <p class="sub">
+            1,530 questions · English + Khmer · one account / one approved
+            device
+          </p>
+        </div>
+        <div class="header-actions">
+          <span id="accountEmail" class="account-email hidden"></span>
+          <button id="logoutBtn" class="ghost-btn hidden" type="button">
+            Log out
+          </button>
+          <button id="restartBtn" class="ghost-btn hidden" type="button">
+            Home
+          </button>
+        </div>
+      </header>
+
+      <section id="loadingView" class="panel centered-panel">
+        <div class="spinner"></div>
+        <h2>Checking access…</h2>
+        <p class="muted">Verifying your account and device.</p>
+      </section>
+
+      <section id="loginView" class="panel auth-panel hidden">
+        <p class="eyebrow">Account required</p>
+        <h2>Sign in</h2>
+        <p class="muted">Only invited users can access this quiz.</p>
+        <form id="loginForm" class="auth-form">
+          <label
+            >Email<input
+              id="emailInput"
+              type="email"
+              autocomplete="email"
+              required
+          /></label>
+          <label
+            >Password<input
+              id="passwordInput"
+              type="password"
+              autocomplete="current-password"
+              required
+              minlength="6"
+          /></label>
+          <button id="loginBtn" class="primary-btn" type="submit">
+            Sign in
+          </button>
+        </form>
+        <button id="forgotBtn" class="text-btn" type="button">
+          Forgot password?
+        </button>
+        <p
+          id="loginMessage"
+          class="status-message hidden"
+          aria-live="polite"
+        ></p>
+      </section>
+
+      <section id="inviteView" class="panel auth-panel hidden">
+        <p class="eyebrow">Invitation</p>
+        <h2>Create your password</h2>
+        <form id="inviteForm" class="auth-form">
+          <label
+            >New password<input
+              id="invitePassword"
+              type="password"
+              autocomplete="new-password"
+              required
+              minlength="8"
+          /></label>
+          <label
+            >Confirm password<input
+              id="invitePasswordConfirm"
+              type="password"
+              autocomplete="new-password"
+              required
+              minlength="8"
+          /></label>
+          <button class="primary-btn" type="submit">Activate account</button>
+        </form>
+        <p
+          id="inviteMessage"
+          class="status-message hidden"
+          aria-live="polite"
+        ></p>
+      </section>
+
+      <section id="recoveryView" class="panel auth-panel hidden">
+        <p class="eyebrow">Password recovery</p>
+        <h2>Set a new password</h2>
+        <form id="recoveryForm" class="auth-form">
+          <label
+            >New password<input
+              id="recoveryPassword"
+              type="password"
+              autocomplete="new-password"
+              required
+              minlength="8"
+          /></label>
+          <button class="primary-btn" type="submit">Save new password</button>
+        </form>
+        <p
+          id="recoveryMessage"
+          class="status-message hidden"
+          aria-live="polite"
+        ></p>
+      </section>
+
+      <section id="pendingView" class="panel centered-panel hidden">
+        <div class="status-icon pending">!</div>
+        <p class="eyebrow">Approval required</p>
+        <h2>This device is waiting for approval</h2>
+        <p class="muted">
+          Your account is valid. Ask the administrator to approve this device.
+        </p>
+        <div class="actions centered">
+          <button id="checkAgainBtn" class="primary-btn" type="button">
+            Check again</button
+          ><button id="pendingLogoutBtn" class="ghost-btn" type="button">
+            Log out
+          </button>
+        </div>
+      </section>
+
+      <section id="lockedView" class="panel centered-panel hidden">
+        <div class="status-icon locked">×</div>
+        <p class="eyebrow">Device blocked</p>
+        <h2>This account is already registered to another device</h2>
+        <p class="muted">
+          Contact the administrator if you need to move your account to a new
+          phone or computer.
+        </p>
+        <button id="lockedLogoutBtn" class="ghost-btn" type="button">
+          Log out
+        </button>
+      </section>
+
+      <section id="adminView" class="panel hidden">
+        <div class="admin-header">
+          <div>
+            <p class="eyebrow">Administrator</p>
+            <h2>Device approvals</h2>
+            <p class="muted">
+              Approve, reject, suspend, reactivate, reset, or remove quiz
+              access.
+            </p>
+          </div>
+          <div class="admin-actions">
+            <button id="adminQuizBtn" class="primary-btn" type="button">
+              Open quiz</button
+            ><button id="refreshAdminBtn" class="ghost-btn" type="button">
+              Refresh
+            </button>
+          </div>
+        </div>
+        <div id="adminStats" class="stat-grid"></div>
+        <div id="adminUsers" class="admin-list"></div>
+      </section>
+
+      <section id="setupView" class="panel setup-panel hidden">
+        <div class="setup-heading">
+          <div>
+            <h2>Choose a subject</h2>
+            <p class="muted">
+              Select a subject, then choose a section or range.
+            </p>
+          </div>
+        </div>
+        <div id="subjectGrid" class="subject-grid">
+          <button
+            class="subject-card selected"
+            data-bank="management"
+            type="button"
+          >
+            <strong>Management</strong><span>690 questions</span>
+          </button>
+          <button class="subject-card" data-bank="publicHealth" type="button">
+            <strong>Dental Public Health</strong><span>194 questions</span>
+          </button>
+          <button class="subject-card" data-bank="biomedical" type="button">
+            <strong>Biomedical Sciences</strong><span>286 questions</span>
+          </button>
+          <button class="subject-card" data-bank="diagnosis" type="button">
+            <strong>Diagnosis</strong><span>360 questions</span>
+          </button>
+        </div>
+        <div class="divider"></div>
+        <div class="range-heading">
+          <div>
+            <p class="eyebrow">Selected subject</p>
+            <h3 id="selectedBankTitle"></h3>
+            <p id="selectedBankCount" class="muted"></p>
+          </div>
+        </div>
+        <div id="sectionGrid" class="section-grid"></div>
+        <div class="custom-range">
+          <label
+            >From<input id="fromInput" type="number" min="1" value="1" /></label
+          ><label
+            >To<input id="toInput" type="number" min="1" value="20" /></label
+          ><button id="startRangeBtn" class="primary-btn" type="button">
+            Start range
+          </button>
+        </div>
+        <div class="practice-options">
+          <label class="check-row"
+            ><input id="shuffleQuestions" type="checkbox" /><span
+              >Shuffle question order</span
+            ></label
+          ><label class="check-row"
+            ><input id="shuffleAnswers" type="checkbox" /><span
+              >Shuffle answer choices</span
+            ></label
+          >
+        </div>
+      </section>
+
+      <section id="quizView" class="hidden">
+        <div class="quiz-context">
+          <div>
+            <p id="quizSubject" class="eyebrow"></p>
+            <p id="quizRange" class="muted compact"></p>
+          </div>
+          <button id="changeSubjectBtn" class="ghost-btn small" type="button">
+            Change subject
+          </button>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-meta">
+            <span id="progressText">Question 1 of 20</span
+            ><span id="scoreText">Score 0 / 0</span>
+          </div>
+          <div class="progress-track">
+            <div id="progressBar" class="progress-bar"></div>
+          </div>
+        </div>
+        <article class="panel question-card">
+          <div class="question-head">
+            <span id="questionNumber" class="q-badge">Q1</span
+            ><button id="bookmarkBtn" class="ghost-btn small" type="button">
+              ☆ Bookmark
+            </button>
+          </div>
+          <h2 id="questionText" class="question-text"></h2>
+          <img
+            id="questionImage"
+            class="question-image hidden"
+            alt="Question image"
+          />
+          <div
+            id="options"
+            class="options"
+            role="group"
+            aria-label="Answer choices"
+          ></div>
+          <div id="feedback" class="feedback hidden" aria-live="polite"></div>
+          <div class="actions">
+            <button id="prevBtn" class="ghost-btn" type="button">
+              Previous</button
+            ><button id="nextBtn" class="primary-btn" type="button">
+              Next
+            </button>
+          </div>
+        </article>
+        <div class="mini-nav panel">
+          <button id="jumpBtn" class="ghost-btn small" type="button">
+            Jump to question</button
+          ><button id="reviewWrongBtn" class="ghost-btn small" type="button">
+            Review wrong</button
+          ><button
+            id="reviewBookmarksBtn"
+            class="ghost-btn small"
+            type="button"
+          >
+            Bookmarks
+          </button>
+        </div>
+      </section>
+
+      <section id="resultView" class="panel result-panel hidden">
+        <p class="eyebrow">Finished</p>
+        <h2>Your result</h2>
+        <div id="finalScore" class="result-number">0 / 0</div>
+        <p id="finalPercent"></p>
+        <div id="resultDetails" class="result-details"></div>
+        <div class="actions centered">
+          <button id="retryWrongBtn" class="primary-btn" type="button">
+            Retry wrong answers</button
+          ><button id="backHomeBtn" class="ghost-btn" type="button">
+            Choose another subject
+          </button>
+        </div>
+      </section>
+    </main>
+    <dialog id="jumpDialog">
+      <form method="dialog" class="dialog-card">
+        <h3>Jump to question</h3>
+        <input id="jumpInput" type="number" min="1" />
+        <p id="jumpHelp" class="muted compact"></p>
+        <div class="actions">
+          <button value="cancel" class="ghost-btn">Cancel</button
+          ><button id="confirmJumpBtn" value="default" class="primary-btn">
+            Go
+          </button>
+        </div>
+      </form>
+    </dialog>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
