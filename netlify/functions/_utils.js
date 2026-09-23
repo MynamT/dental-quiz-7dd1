@@ -1,75 +1,273 @@
-import { getStore } from '@netlify/blobs';
-import { getUser } from '@netlify/identity';
+import {
+  getStore,
+} from "@netlify/blobs";
 
-export const STORE = 'dental-quiz-devices';
+import {
+  getUser,
+} from "@netlify/identity";
 
-export const json = (data, status = 200) =>
-  Response.json(data, {
-    status,
-    headers: { 'cache-control': 'no-store' },
-  });
+export const STORE =
+  "dental-quiz-devices";
+
+/* =========================================================
+   JSON RESPONSE
+========================================================= */
+
+export const json = (
+  data,
+  status = 200,
+) =>
+  Response.json(
+    data,
+    {
+      status,
+
+      headers: {
+        "cache-control":
+          "no-store",
+      },
+    },
+  );
+
+/* =========================================================
+   REQUIRE LOGIN
+========================================================= */
 
 export async function requireUser() {
-  const user = await getUser();
-  return user ? { user } : { error: json({ message: 'Unauthorized' }, 401) };
+  const user =
+    await getUser();
+
+  return user
+    ? {
+        user,
+      }
+    : {
+        error:
+          json(
+            {
+              message:
+                "Unauthorized",
+            },
+            401,
+          ),
+      };
 }
 
-export function isAdmin(user) {
-  const adminEmail = (process.env.ADMIN_EMAIL || '').trim().toLowerCase();
-  return !!adminEmail && String(user.email || '').toLowerCase() === adminEmail;
+/* =========================================================
+   ADMIN CHECK
+========================================================= */
+
+export function isAdmin(
+  user,
+) {
+  const adminEmail =
+    (
+      process.env
+        .ADMIN_EMAIL ||
+      ""
+    )
+      .trim()
+      .toLowerCase();
+
+  return (
+    !!adminEmail &&
+    String(
+      user.email ||
+        "",
+    ).toLowerCase() ===
+      adminEmail
+  );
 }
 
-export const store = () => getStore(STORE);
+/* =========================================================
+   BLOB STORE
+========================================================= */
 
-export async function read(id) {
-  return store().get(`user:${id}`, { type: 'json', consistency: 'strong' });
+export const store =
+  () =>
+    getStore(STORE);
+
+/* =========================================================
+   READ USER RECORD
+========================================================= */
+
+export async function read(
+  userId,
+) {
+  return store().get(
+    `user:${userId}`,
+    {
+      type: "json",
+
+      consistency:
+        "strong",
+    },
+  );
 }
 
-export async function save(id, record) {
-  await store().setJSON(`user:${id}`, record);
+/* =========================================================
+   SAVE USER RECORD
+========================================================= */
+
+export async function save(
+  userId,
+  record,
+) {
+  await store().setJSON(
+    `user:${userId}`,
+    record,
+  );
 }
+
+/* =========================================================
+   DEVICE PREVIEW
+========================================================= */
 
 export function preview(id) {
-  return id ? `${id.slice(0, 6)}…${id.slice(-4)}` : '';
+  return id
+    ? `${id.slice(
+        0,
+        6,
+      )}…${id.slice(-4)}`
+    : "";
 }
+
+/* =========================================================
+   TIME
+========================================================= */
 
 export function now() {
   return new Date().toISOString();
 }
 
-export async function verify(user, deviceId) {
-  if (isAdmin(user)) return { allowed: true, isAdmin: true, reason: 'admin' };
-  if (!deviceId) return { allowed: false, reason: 'missing_device' };
+/* =========================================================
+   VERIFY QUIZ ACCESS
+========================================================= */
 
-  const record = await read(user.id);
-  if (!record) return { allowed: false, reason: 'not_registered' };
+export async function verify(
+  user,
+  deviceId,
+) {
+  /* ADMIN */
 
-  if (record.status === 'deleted') {
-    return { allowed: false, reason: 'deleted', record };
+  if (isAdmin(user)) {
+    return {
+      allowed: true,
+      isAdmin: true,
+      reason: "admin",
+    };
   }
 
-  if (record.status === 'suspended') {
-    return { allowed: false, reason: 'suspended', record };
+  /* NO DEVICE */
+
+  if (!deviceId) {
+    return {
+      allowed: false,
+      reason:
+        "missing_device",
+    };
   }
 
-  if (record.status === 'rejected') {
-    return { allowed: false, reason: 'rejected', record };
+  const record =
+    await read(
+      user.id,
+    );
+
+  /* NO RECORD */
+
+  if (!record) {
+    return {
+      allowed: false,
+      reason:
+        "not_registered",
+    };
   }
+
+  /* DELETED */
 
   if (
-    record.status === 'approved' &&
-    record.approvedDeviceId === deviceId
+    record.status ===
+    "deleted"
   ) {
-    return { allowed: true, reason: 'approved', record };
+    return {
+      allowed: false,
+      reason:
+        "deleted",
+      record,
+    };
   }
 
+  /* SUSPENDED */
+
   if (
-    record.status === 'pending' &&
+    record.status ===
+    "suspended"
+  ) {
+    return {
+      allowed: false,
+      reason:
+        "suspended",
+      record,
+    };
+  }
+
+  /* REJECTED */
+
+  if (
+    record.status ===
+    "rejected"
+  ) {
+    return {
+      allowed: false,
+      reason:
+        "rejected",
+      record,
+    };
+  }
+
+  /* APPROVED DEVICE */
+
+  if (
+    record.status ===
+      "approved" &&
+    record.approvedDeviceId ===
+      deviceId
+  ) {
+    return {
+      allowed: true,
+      reason:
+        "approved",
+      record,
+    };
+  }
+
+  /* PENDING DEVICE */
+
+  if (
+    record.status ===
+      "pending" &&
     !record.approvedDeviceId &&
-    record.pendingDeviceId === deviceId
+    record.pendingDeviceId ===
+      deviceId
   ) {
-    return { allowed: false, reason: 'pending_approval', record };
+    return {
+      allowed: false,
+
+      reason:
+        "pending_approval",
+
+      record,
+    };
   }
 
-  return { allowed: false, reason: 'different_device', record };
+  /* WRONG DEVICE */
+
+  return {
+    allowed: false,
+
+    reason:
+      "different_device",
+
+    record,
+  };
 }
