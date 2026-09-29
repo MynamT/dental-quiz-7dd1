@@ -62,6 +62,41 @@ export default async (request) => {
     return json({ allowed: true, reason: 'approved', status: 'approved' });
   }
 
+  /*
+    APPROVED ACCOUNT + DIFFERENT DEVICE
+
+    Keep the currently approved device active. The new
+    browser/device becomes a pending replacement request
+    instead of immediately showing a permanent lock.
+
+    This is especially important for users whose browser
+    storage was cleared on the same physical phone.
+  */
+
+  if (record.status === 'approved') {
+    if (!record.pendingDeviceId) {
+      record.pendingDeviceId = deviceId;
+      record.deviceChangeRequestedAt = now();
+      await save(user.id, record);
+    }
+
+    if (record.pendingDeviceId === deviceId) {
+      return json({
+        allowed: false,
+        reason: 'pending_approval',
+        status: 'approved',
+        deviceChange: true,
+      });
+    }
+
+    return json({
+      allowed: false,
+      reason: 'different_device',
+      status: 'locked',
+      deviceChangePending: true,
+    });
+  }
+
   if (record.status === 'reset') {
     record.pendingDeviceId = deviceId;
     record.status = 'pending';

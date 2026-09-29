@@ -197,6 +197,16 @@ export function createAdminPanel() {
       ],
 
       [
+        "Device changes",
+        users.filter(
+          (user) =>
+            user.status ===
+              "approved" &&
+            user.hasPending,
+        ).length,
+      ],
+
+      [
         "Suspended",
         users.filter(
           (user) =>
@@ -338,9 +348,21 @@ export function createAdminPanel() {
       user.pendingDevicePreview ||
       "not registered";
 
+    let deviceText =
+      ` · Device ${preview}`;
+
+    if (
+      user.status ===
+        "approved" &&
+      user.hasPending
+    ) {
+      deviceText +=
+        ` · New request ${user.pendingDevicePreview}`;
+    }
+
     const detail =
       document.createTextNode(
-        ` · Device ${preview}`,
+        deviceText,
       );
 
     meta.append(
@@ -402,6 +424,40 @@ export function createAdminPanel() {
     if (
       user.status === "approved"
     ) {
+      if (user.hasPending) {
+        actions.append(
+          actionButton(
+            "Approve device change",
+            "primary-btn small",
+            () =>
+              runAction(
+                "/.netlify/functions/approve-device",
+                user,
+
+                `Replace the approved device for ${
+                  user.email ||
+                  user.userId
+                } with the new request?`,
+              ),
+          ),
+
+          actionButton(
+            "Reject device change",
+            "ghost-btn small",
+            () =>
+              runAction(
+                "/.netlify/functions/reject-device",
+                user,
+
+                `Reject the new device request for ${
+                  user.email ||
+                  user.userId
+                }? The currently approved device will keep working.`,
+              ),
+          ),
+        );
+      }
+
       actions.append(
         actionButton(
           "Reset device",

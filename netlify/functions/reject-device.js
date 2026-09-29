@@ -12,6 +12,30 @@ export default async (request) => {
   const record = await read(userId);
   if (!record) return json({ message: 'User device record not found' }, 404);
 
+  /*
+    If an already-approved account is requesting a device
+    change, reject only the new request. Do not revoke the
+    currently approved device.
+  */
+  if (
+    record.status === 'approved' &&
+    record.approvedDeviceId &&
+    record.pendingDeviceId
+  ) {
+    record.rejectedDeviceId = record.pendingDeviceId;
+    record.pendingDeviceId = null;
+    record.deviceChangeRequestedAt = null;
+    record.deviceChangeRejectedAt = now();
+    record.updatedAt = now();
+    await save(userId, record);
+
+    return json({
+      ok: true,
+      status: 'approved',
+      deviceChangeRejected: true,
+    });
+  }
+
   record.status = 'rejected';
   record.rejectedDeviceId = record.pendingDeviceId || null;
   record.pendingDeviceId = null;

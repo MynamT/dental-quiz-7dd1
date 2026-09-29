@@ -11,6 +11,9 @@ import {
 const DEVICE_KEY =
   "dental_quiz_device_id_v1";
 
+const DEVICE_COOKIE =
+  "dental_quiz_device_backup_v1";
+
 const $ = (id) =>
   document.getElementById(id);
 
@@ -18,21 +21,91 @@ const $ = (id) =>
    DEVICE ID
 ========================================================= */
 
-function getDeviceId() {
-  let id =
-    localStorage.getItem(
-      DEVICE_KEY,
-    );
+function readDeviceCookie() {
+  const prefix =
+    `${DEVICE_COOKIE}=`;
 
+  const match =
+    document.cookie
+      .split("; ")
+      .find((item) =>
+        item.startsWith(prefix),
+      );
+
+  return match
+    ? decodeURIComponent(
+        match.slice(
+          prefix.length,
+        ),
+      )
+    : "";
+}
+
+function writeDeviceCookie(id) {
   if (!id) {
-    id =
-      crypto.randomUUID();
+    return;
+  }
 
-    localStorage.setItem(
-      DEVICE_KEY,
-      id,
+  const secure =
+    location.protocol ===
+    "https:"
+      ? "; Secure"
+      : "";
+
+  document.cookie =
+    `${DEVICE_COOKIE}=${encodeURIComponent(id)}; Path=/; Max-Age=34560000; SameSite=Lax${secure}`;
+}
+
+function getDeviceId() {
+  let localId = "";
+
+  try {
+    localId =
+      localStorage.getItem(
+        DEVICE_KEY,
+      ) || "";
+  } catch (error) {
+    console.warn(
+      "Unable to read device ID from localStorage:",
+      error,
     );
   }
+
+  const cookieId =
+    readDeviceCookie();
+
+  /*
+    Prefer the backup cookie when it exists.
+
+    This lets the same browser recover its approved
+    device ID if localStorage is unexpectedly cleared.
+    Existing users are migrated automatically because
+    their current localStorage ID is copied into the
+    backup cookie on the next successful page load.
+  */
+
+  const id =
+    cookieId ||
+    localId ||
+    crypto.randomUUID();
+
+  if (localId !== id) {
+    try {
+      localStorage.setItem(
+        DEVICE_KEY,
+        id,
+      );
+    } catch (error) {
+      console.warn(
+        "Unable to save device ID to localStorage:",
+        error,
+      );
+    }
+  }
+
+  writeDeviceCookie(
+    id,
+  );
 
   return id;
 }
